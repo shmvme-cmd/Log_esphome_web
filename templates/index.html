@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ESPHome PID Logger</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+</head>
+<body>
+
+    <!-- ──────────────── NAVBAR ──────────────── -->
+    <header class="navbar">
+        <div class="navbar-brand">
+            <div class="brand-icon">⚡</div>
+            <span>ESPHome <span class="brand-accent">PID Logger</span></span>
+        </div>
+        <div id="statusBadge" class="status-badge status-idle">
+            <span id="statusDot" class="status-dot"></span>
+            <span id="statusText">Ожидание</span>
+        </div>
+    </header>
+
+    <!-- ──────────────── LAYOUT ──────────────── -->
+    <div class="app-layout">
+
+        <!-- ════════ SIDEBAR ════════ -->
+        <aside class="sidebar">
+
+            <!-- SAVED DEVICES -->
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">Сохранённые устройства</div>
+                <div class="form-group">
+                    <select class="form-select" id="savedDeviceSelect">
+                        <option value="">— выберите устройство —</option>
+                    </select>
+                </div>
+                <div style="display:flex; gap:6px;">
+                    <button class="btn btn-ghost" style="flex:1;" onclick="loadSavedDevice()">
+                        ↙ Загрузить
+                    </button>
+                    <button class="btn btn-ghost" style="flex:1; color:var(--red);" onclick="deleteSavedDevice()">
+                        🗑 Удалить
+                    </button>
+                </div>
+            </div>
+
+            <!-- DEVICE CONNECTION -->
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">Подключение</div>
+
+                <div class="form-group">
+                    <label class="form-label" for="ipInput">IP-адрес</label>
+                    <div style="display:flex; gap:4px;">
+                        <input  type="text"
+                                class="form-input"
+                                id="ipInput"
+                                placeholder="192.168.1.x"
+                                autocomplete="off" />
+                        <button class="btn btn-ghost btn-sm"
+                                id="modeBtn"
+                                title="Переключить режим ввода"
+                                onclick="toggleInputMode()">⇄</button>
+                    </div>
+                    <select class="form-select" id="mdnsSelect"
+                            style="display:none; margin-top:6px;"
+                            onchange="onMdnsSelect()">
+                        <option value="">— выберите устройство —</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="apiKeyInput">API Key</label>
+                    <div class="input-group">
+                        <input  type="password"
+                                class="form-input"
+                                id="apiKeyInput"
+                                placeholder="Base64 ключ шифрования"
+                                autocomplete="off" />
+                        <div class="input-group-append">
+                            <button class="btn btn-ghost btn-sm"
+                                    id="togglePwdBtn"
+                                    title="Показать / скрыть"
+                                    onclick="togglePassword()">👁</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Save device accordion -->
+                <details class="save-accordion" id="saveAccordion">
+                    <summary class="save-accordion-summary">
+                        <span>💾 Сохранить устройство</span>
+                        <span class="accordion-arrow">▸</span>
+                    </summary>
+                    <div class="save-accordion-body">
+                        <div class="form-group" style="margin-bottom:8px;">
+                            <label class="form-label" for="saveNameInput">Название</label>
+                            <input  type="text"
+                                    class="form-input"
+                                    id="saveNameInput"
+                                    placeholder="Например: Гостиная" />
+                        </div>
+                        <button class="btn btn-ghost btn-full" onclick="saveCurrentDevice()">
+                            Сохранить
+                        </button>
+                    </div>
+                </details>
+
+                <button class="btn btn-ghost btn-full"
+                        style="margin-top:8px; margin-bottom:8px;"
+                        onclick="scanMDNS()">
+                    🔍 Найти устройства mDNS
+                </button>
+
+                <div style="display:flex; gap:6px;">
+                    <button class="btn btn-primary" id="connectBtn"
+                            style="flex:1;" onclick="connectDevice()">
+                        Подключить
+                    </button>
+                    <button class="btn btn-danger" id="disconnectBtn"
+                            style="flex:1;" disabled onclick="disconnectDevice()">
+                        Отключить
+                    </button>
+                </div>
+            </div>
+
+            <!-- ACTIONS -->
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">Управление</div>
+                <select class="form-control" id="buttonSelect" disabled style="margin-bottom:8px;">
+                    <option value="">— подключитесь к устройству —</option>
+                </select>
+                <button class="btn btn-amber btn-full"
+                        id="autotuneBtn" disabled onclick="sendAutotune()">
+                    🚀 Запустить Autotune
+                </button>
+            </div>
+
+            <!-- EXPORT -->
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">Экспорт</div>
+                <button class="btn btn-ghost btn-full" onclick="downloadJSON()">
+                    💾 Скачать JSON
+                </button>
+            </div>
+
+            <div style="flex:1;"></div>
+
+            <div class="sidebar-footer">
+                ESPHome PID Logger v0.2
+            </div>
+
+        </aside>
+
+        <!-- ════════ MAIN AREA ════════ -->
+        <main class="terminal-area">
+
+            <!-- Tab bar -->
+            <div class="tab-bar">
+                <button class="tab tab-active" id="tabTerminal" onclick="switchTab('terminal')">
+                    🖥 Терминал
+                </button>
+                <button class="tab" id="tabHistory" onclick="switchTab('history')">
+                    📊 История
+                </button>
+            </div>
+
+            <!-- ─── TERMINAL TAB ─── -->
+            <div id="terminalTab" class="tab-content">
+                <!-- Toolbar -->
+                <div class="terminal-toolbar">
+                    <div class="terminal-title">
+                        <div class="terminal-dots">
+                            <div class="terminal-dot dot-red"></div>
+                            <div class="terminal-dot dot-yellow"></div>
+                            <div class="terminal-dot dot-green"></div>
+                        </div>
+                        Лог PID Autotune
+                    </div>
+                    <div class="terminal-actions">
+                        <span class="log-count" id="logCount">0 строк</span>
+                        <button class="btn btn-ghost btn-sm"
+                                id="colorBtn"
+                                onclick="toggleColor()">🎨 Зелёный</button>
+                        <button class="btn btn-ghost btn-sm"
+                                onclick="clearLogs()">🗑 Очистить</button>
+                    </div>
+                </div>
+                <!-- Terminal output -->
+                <div class="terminal" id="terminal">
+                    <div class="terminal-placeholder" id="terminalPlaceholder">
+                        Подключитесь к устройству, чтобы начать получать логи…
+                    </div>
+                </div>
+            </div>
+
+            <!-- ─── HISTORY TAB ─── -->
+            <div id="historyTab" class="tab-content" style="display:none; flex-direction:column;">
+
+                <!-- History toolbar -->
+                <div class="history-toolbar">
+                    <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                        <select class="form-select" id="historyDeviceFilter"
+                                style="width:auto; min-width:200px;"
+                                onchange="loadHistory()">
+                            <option value="">Все устройства</option>
+                        </select>
+                        <button class="btn btn-ghost btn-sm" onclick="loadHistory()">
+                            ↻ Обновить
+                        </button>
+                    </div>
+                    <span class="log-count" id="historyCount">0 записей</span>
+                </div>
+
+                <!-- Results table -->
+                <div class="history-scroll" id="historyContent">
+                    <div class="history-empty" id="historyEmpty">
+                        История результатов пуста. Запустите Autotune для сохранения.
+                    </div>
+                    <table class="history-table" id="historyTable" style="display:none;">
+                        <thead>
+                            <tr>
+                                <th>Дата / Время</th>
+                                <th>Устройство</th>
+                                <th>Статус</th>
+                                <th class="num-col">kp</th>
+                                <th class="num-col">ki</th>
+                                <th class="num-col">kd</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyTbody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- ───── RESULT DETAIL MODAL ───── -->
+    <div class="modal-overlay" id="resultModal" style="display:none;" onclick="closeModal(event)">
+        <div class="modal" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <div>
+                    <div class="modal-title" id="modalTitle">Результаты Autotune</div>
+                    <div class="modal-subtitle" id="modalSubtitle"></div>
+                </div>
+                <button class="btn btn-ghost btn-sm" onclick="closeResultModal()">✕</button>
+            </div>
+            <div class="modal-body" id="modalBody"></div>
+        </div>
+    </div>
+
+    <!-- ───── TOAST ───── -->
+    <div class="toast" id="toast"></div>
+
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

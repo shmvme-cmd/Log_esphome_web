@@ -1,0 +1,11 @@
+[project]
+name = "log-esphome-web"
+version = "0.2.0"
+description = "ESPHome PID Logger — Flask Web Application"
+requires-python = ">=3.12"
+dependencies = [
+    "aioesphomeapi>=43.10.1",
+    "flask>=3.0.0",
+    "flask-socketio>=5.3.6",
+    "zeroconf>=0.148.0",
+]
