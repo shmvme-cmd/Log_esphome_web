@@ -9,3 +9,6 @@ dependencies = [
     "flask-socketio>=5.3.6",
     "zeroconf>=0.148.0",
 ]
+
+[tool.setuptools.packages.find]
+include = ["app*"]
