@@ -4,9 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ESPHome PID Logger</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/fonts.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}" />
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
 </head>
 <body>
@@ -129,7 +128,7 @@
             <!-- ACTIONS -->
             <div class="sidebar-section">
                 <div class="sidebar-section-title">Управление</div>
-                <select class="form-control" id="buttonSelect" disabled style="margin-bottom:8px;">
+                <select class="form-select" id="buttonSelect" disabled style="margin-bottom:8px;">
                     <option value="">— подключитесь к устройству —</option>
                 </select>
                 <button class="btn btn-amber btn-full"
@@ -256,7 +255,8 @@
     <!-- ───── TOAST ───── -->
     <div class="toast" id="toast"></div>
 
-    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <script src="{{ url_for('static', filename='js/socket.io.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
 </body>
 </html>

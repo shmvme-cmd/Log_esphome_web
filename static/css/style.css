@@ -2,6 +2,18 @@
    ESPHome PID Logger — Modern Dark UI
    =================================================== */
 
+/* ── Bootstrap CSS-variable overrides (dark theme) ── */
+:root {
+    --bs-body-bg:              #070b14;
+    --bs-body-color:           #e2e8f0;
+    --bs-border-color:         #1c2a40;
+    --bs-primary-rgb:          59,130,246;
+    --bs-danger-rgb:           239,68,68;
+    --bs-form-select-bg-img:   none;
+    --bs-font-sans-serif:      'Inter', system-ui, sans-serif;
+    --bs-font-monospace:       'JetBrains Mono', monospace;
+}
+
 /* ── Base ── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -197,6 +209,7 @@ body {
 .form-select {
     width: 100%;
     background: var(--bg-card);
+    background-image: none;       /* отключаем SVG-стрелку Bootstrap */
     border: 1px solid var(--border);
     color: var(--text-primary);
     padding: 7px 11px;
@@ -205,6 +218,7 @@ body {
     font-family: 'JetBrains Mono', monospace;
     transition: border-color var(--transition), box-shadow var(--transition);
     appearance: none;
+    -webkit-appearance: none;
 }
 
 .form-input::placeholder { color: var(--text-muted); }
@@ -217,6 +231,29 @@ body {
 }
 
 .form-select { cursor: pointer; }
+
+/* Bootstrap-compatible alias — одинаковый тёмный вид */
+.form-control {
+    width: 100%;
+    background: var(--bg-card);
+    background-image: none;
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    padding: 7px 11px;
+    border-radius: var(--radius);
+    font-size: 0.82rem;
+    font-family: 'JetBrains Mono', monospace;
+    transition: border-color var(--transition), box-shadow var(--transition);
+    appearance: none;
+    -webkit-appearance: none;
+}
+.form-control:focus {
+    outline: none;
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgba(59,130,246,.15);
+    background: var(--bg-card);
+    color: var(--text-primary);
+}
 
 .input-group {
     display: flex;
